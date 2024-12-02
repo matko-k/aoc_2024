@@ -1,6 +1,10 @@
 
 #include "day01.h"
 
+static const std::string DAY = "day01";
+static const std::string EXAMPLE_PATH = "../inputs/" + DAY + "/example.txt";
+static const std::string INPUT_PATH = "../inputs/" + DAY + "/input.txt";
+
 void day01::runDay1Part1() {
   const auto &input = parseInput(INPUT_PATH);
   const auto &left = input[0];

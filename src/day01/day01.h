@@ -5,10 +5,6 @@
 #include <set>
 #include <vector>
 
-static const std::string DAY = "day01";
-static const std::string EXAMPLE_PATH = "../inputs/" + DAY + "/example.txt";
-static const std::string INPUT_PATH = "../inputs/" + DAY + "/input.txt";
-
 class day01 {
 public:
   static std::vector<std::multiset<int>>
