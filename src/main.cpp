@@ -1,11 +1,11 @@
 #include <commons.h>
 
-#include <day12/day12.h>
+#include <day13/day13.h>
 
 int main() {
 
-  measureExecutionTime(day12::runDay12Part1);
-  measureExecutionTime(day12::runDay12Part2);
+  measureExecutionTime(day13::runDay13Part1);
+  measureExecutionTime(day13::runDay13Part2);
 
   return 0;
 }
