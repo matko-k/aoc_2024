@@ -101,36 +101,15 @@ void day17::runDay17Part2() {
   }
   expected_out.pop_back();
 
-  long a_init = 98846808250;
+  long a_init = 0;
   long last_match = 0;
 
   int i = 0;
-  std::vector<long> cycle = {
-      1, 4, 315, 1, 3, 8589934268,  1, 4, 315, 1, 3, 8589934268,
-      1, 4, 315, 1, 3, 8589934268,  1, 4, 315, 1, 3, 4294966972,
-      1, 4, 315, 1, 3, 4294966972,  1, 4, 315, 1, 3, 8589934268,
-      1, 4, 315, 1, 3, 8589934268,  1, 4, 315, 1, 3, 8589934268,
-      1, 4, 315, 1, 3, 6442450620,  1, 4, 315, 1, 3, 2147483324,
-      1, 4, 315, 1, 3, 6442450620,  1, 4, 315, 1, 3, 2147483324,
-      1, 4, 315, 1, 3, 6442450620,  1, 4, 315, 1, 3, 2147483324,
-      1, 4, 315, 1, 3, 6442450620,  1, 4, 315, 1, 3, 2147483324,
-      1, 4, 315, 1, 3, 4294966972,  1, 4, 315, 1, 3, 4294966972,
-      1, 4, 315, 1, 3, 8589934268,  1, 4, 315, 1, 3, 8589934268,
-      1, 4, 315, 1, 3, 8589934268,  1, 4, 315, 1, 3, 38654705340,
-      1, 4, 315, 1, 3, 68719476412, 1, 4, 315, 1, 3, 68719476412,
-      1, 4, 315, 1, 3, 36507221692, 1, 4, 315, 1, 3, 8589934268,
-      1, 4, 315, 1, 3, 8589934268,  1, 4, 315, 1, 3, 8589934268,
-      1, 4, 315, 1, 3, 6442450620,  1, 4, 315, 1, 3, 68719476412,
-      1, 4, 315, 1, 3, 68719476412, 1, 4, 315, 1, 3, 68719476412,
-      1, 4, 315, 1, 3, 36507221692, 1, 4, 315, 1, 3, 8589934268,
-      1, 4, 315, 1, 3, 8589934268,  1, 4, 315, 1, 3, 8589934268,
-      1, 4, 315, 1, 3, 6442450620,  1, 4, 315, 1, 3, 68719476412,
-      1, 4, 315, 1, 3, 68719476412, 1, 4, 315, 1, 3, 68719476412,
-      1, 4, 315, 1, 3, 36507221692, 1, 4, 315, 1, 3, 8589934268,
-      1, 4, 315, 1, 3, 8589934268,  1, 4, 315, 1, 3, 8589934268,
-      1, 4, 315, 1, 3, 6442450620,  1, 4, 315, 1, 3, 68719476412,
-      1, 4, 315, 1, 3, 68719476412, 1, 4, 315, 1, 3, 38654705340};
-
+  std::vector<long> cycle = {1};
+  long next_a_init = -1;
+  std::vector<long> next_cycle;
+  int check_length = 7;
+  int check_cycle_size = 32;
 
   while (true) {
 
@@ -162,16 +141,46 @@ void day17::runDay17Part2() {
       ip = new_ip >= 0 ? new_ip : ip + 2;
     }
 
-    if (expected_out.substr(0, 21).compare(out.substr(0, 21)) == 0) {
-      //      std::cout << "a_init: " << a_init << "\n"
-      //                << "last match diff: " << a_init - last_match << "\n"
-      //                << out << "\n\n";
-      //    std::cout<<a_init - last_match<<", ";
+    if (expected_out.substr(0, check_length)
+            .compare(out.substr(0, check_length)) == 0) {
+      if (next_a_init < 0)
+        next_a_init = a_init;
+      next_cycle.push_back(a_init - last_match);
       last_match = a_init;
     }
 
     if (out == expected_out)
       break;
+
+    bool is_new_cycle = false;
+    int next_cycle_len = 1;
+    if (next_cycle.size() > check_cycle_size) {
+      for (; next_cycle_len <= next_cycle.size() / 2; next_cycle_len++) {
+        is_new_cycle = true;
+        for (int j = 1; j < next_cycle.size() - next_cycle_len; j++) {
+          if (next_cycle[j] != next_cycle[j + next_cycle_len]) {
+            is_new_cycle = false;
+            break;
+          }
+        }
+        if (is_new_cycle) {
+          break;
+        }
+      }
+    }
+
+    if (is_new_cycle) {
+      a_init = next_a_init;
+      next_a_init = -1;
+      cycle.clear();
+      std::copy(next_cycle.begin() + 1, next_cycle.begin() + next_cycle_len + 1,
+                std::back_inserter(cycle));
+      next_cycle.clear();
+      check_length += 2;
+      i = 0;
+      check_cycle_size = 1024;
+      continue;
+    }
 
     a_init += cycle[i];
     i += 1;
