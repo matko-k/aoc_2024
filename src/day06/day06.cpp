@@ -35,29 +35,33 @@ bool moveGuard(const std::vector<std::string> &map,
   return moveGuard(map, visited, next, dir);
 }
 
-bool moveGuardAndCheckForLoop(
-    const std::vector<std::string> &map,
-    std::unordered_map<Pos, std::unordered_set<Pos>> &visited, Pos &current,
-    Pos &dir) {
+bool moveGuardAndCheckForLoop(const std::vector<std::string> &map,
+                              const Pos &start_pos, const Pos &start_dir) {
 
-  if (visited.find(current) != visited.end() &&
-      visited[current].count(dir))
-    return true;
+  Pos current = start_pos;
+  Pos dir = start_dir;
+  int width = map[0].size();
+  int height = map.size();
 
-  visited[current].insert(dir);
+  std::unordered_map<Pos, std::unordered_set<Pos>> obstacles_hit;
 
-  Pos next = {current.x + dir.x, current.y + dir.y};
+  while (true) {
 
-  if (next.x < 0 || next.x >= map[0].size() || next.y < 0 ||
-      next.y >= map.size())
-    return false;
+    Pos next = {current.x + dir.x, current.y + dir.y};
 
-  if (map[next.y][next.x] == '#') {
-    dir = {-dir.y, dir.x};
-    next = current;
+    if (next.x < 0 || next.x >= width || next.y < 0 || next.y >= height)
+      return false;
+
+    if (map[next.y][next.x] == '#') {
+      if (obstacles_hit[next].contains(dir))
+        return true;
+      obstacles_hit[next].emplace(dir);
+      dir = {-dir.y, dir.x};
+      continue;
+    }
+
+    current = next;
   }
-
-  return moveGuardAndCheckForLoop(map, visited, next, dir);
 }
 
 void day06::runDay06Part1() {
@@ -105,8 +109,9 @@ void day06::runDay06Part2() {
       break;
   }
 
-  Pos dir = {0, -1};
+  const Pos start_dir = {0, -1};
   Pos current = guard_pos;
+  Pos dir = start_dir;
   std::unordered_set<Pos> visited = {};
 
   moveGuard(map, visited, current, dir);
@@ -116,13 +121,13 @@ void day06::runDay06Part2() {
   int res = 0;
 
   for (const Pos &possible_obstacle : visited) {
-    Pos dir = {0, -1};
-    Pos current = guard_pos;
+    current = {guard_pos.x + start_dir.x, guard_pos.y + start_dir.y};
+    dir = start_dir;
 
     auto map_copy = map;
     map_copy[possible_obstacle.y][possible_obstacle.x] = '#';
-    std::unordered_map<Pos, std::unordered_set<Pos>> new_visited;
-    if (moveGuardAndCheckForLoop(map_copy, new_visited, current, dir))
+    std::unordered_map<Pos, std::unordered_set<Pos>> obstacles_hit;
+    if (moveGuardAndCheckForLoop(map_copy, current, dir))
       res++;
   }
 
