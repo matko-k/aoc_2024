@@ -54,8 +54,10 @@ bool findEquationWithConcatenation(const std::vector<long> &numbers,
   if (next_index == numbers.size())
     return res == current_res;
 
-  long concat_num = std::stol(std::to_string(current_res) +
-                              std::to_string(numbers[next_index]));
+  long multiplier = 1;
+  while (multiplier <= numbers[next_index]) {
+    multiplier *= 10; }
+  long concat_num = current_res * multiplier + numbers[next_index];
 
   return findEquationWithConcatenation(
              numbers, res, numbers[next_index] + current_res, next_index + 1) ||
