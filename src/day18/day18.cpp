@@ -26,7 +26,7 @@ static void parseInput(const std::string &file_name, std::vector<Pos> &out) {
   file.close();
 }
 
-bool isValid(const std::vector<std::string> &map, const Pos &pos) {
+static bool isValid(const std::vector<std::string> &map, const Pos &pos) {
   return pos.x >= 0 && pos.x < map[0].size() && pos.y >= 0 &&
          pos.y < map.size() && map[pos.y][pos.x] == '.';
 }
