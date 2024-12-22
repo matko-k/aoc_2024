@@ -21,6 +21,7 @@
 #include <day19/day19.h>
 #include <day20/day20.h>
 #include <day21/day21.h>
+#include <day22/day22.h>
 
 int main() {
 
@@ -64,9 +65,11 @@ int main() {
 //  measureExecutionTime(day19::runDay19Part2);
 //  measureExecutionTime(day20::runDay20Part1);
 //  measureExecutionTime(day20::runDay20Part2);
+//  measureExecutionTime(day21::runDay21Part1);
+//  measureExecutionTime(day21::runDay21Part2);
 
-  measureExecutionTime(day21::runDay21Part1);
-  measureExecutionTime(day21::runDay21Part2);
+  measureExecutionTime(day22::runDay22Part1);
+  measureExecutionTime(day22::runDay22Part2);
 
   return 0;
 }
