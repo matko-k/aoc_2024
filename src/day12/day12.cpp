@@ -1,8 +1,8 @@
 #include "day12.h"
 #include <commons.h>
 #include <numeric>
+#include <set>
 #include <unordered_map>
-#include <unordered_set>
 
 static const std::string DAY = "day12";
 static const std::string EXAMPLE_PATH = "../inputs/" + DAY + "/example.txt";
@@ -88,19 +88,31 @@ void day12::runDay12Part1() {
 void day12::runDay12Part2() {
   const auto &input = parseInput(INPUT_PATH);
 
-  std::vector<std::vector<int>> visited(input.size(),
-                                        std::vector<int>(input[0].size(), 0));
+  std::vector<std::string> input_x9(input.size() * 3,
+                                    std::string(input[0].size() * 3, '.'));
+
+  for (int i = 0; i < input.size(); i++)
+    for (int j = 0; j < input.size(); j++)
+      for (int k = 0; k < 3; k++)
+        for (int l = 0; l < 3; l++)
+          input_x9[3 * i + k][3 * j + l] = input[i][j];
+
+  std::vector<std::vector<int>> visited(
+      input_x9.size(), std::vector<int>(input_x9[0].size(), 0));
 
   int res = 0;
+  const std::vector<Pos> dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+  const std::vector<Pos> dirs_diagonals = {{1, 0}, {-1, 0}, {0, 1},  {0, -1},
+                                           {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
-  for (int i = 0; i < input.size(); i++) {
-    for (int j = 0; j < input[0].size(); j++) {
+  for (int i = 0; i < input_x9.size(); i++) {
+    for (int j = 0; j < input_x9[0].size(); j++) {
       if (visited[i][j] == 1)
         continue;
 
-      const char plant = input[i][j];
+      const char plant = input_x9[i][j];
       std::vector<Pos> neighbors = {{j, i}};
-      std::vector<Pos> area;
+      std::set<Pos> area;
 
       while (!neighbors.empty()) {
         Pos current = neighbors.back();
@@ -108,91 +120,43 @@ void day12::runDay12Part2() {
         if (visited[current.y][current.x] == 1)
           continue;
 
-        const auto &sides = countSides(input, current, plant);
         visited[current.y][current.x] = 1;
-        area.push_back(current);
+        area.insert(current);
 
-        findNeighbors(input, current, plant, neighbors);
+        findNeighbors(input_x9, current, plant, neighbors);
+      }
+
+      std::set<Pos> perimeter;
+
+      for (const Pos &p : area) {
+        for (const Pos &dir : dirs_diagonals) {
+          Pos test = {p.x + dir.x, p.y + dir.y};
+          if (area.contains(test))
+            continue;
+          perimeter.insert(test);
+        }
       }
 
       int corners = 0;
-      int top_y = -1;
-      int bottom_y = input.size();
-      for (const Pos &p : area) {
-        if (p.y < bottom_y)
-          bottom_y = p.y;
-        if (p.y > top_y)
-          top_y = p.y;
+
+      for (const Pos &p : perimeter) {
+        int horizontal_neighbours = 0;
+        int vertical_neighbors = 0;
+
+        if (perimeter.contains({p.x - 1, p.y}))
+          horizontal_neighbours++;
+        if (perimeter.contains({p.x + 1, p.y}))
+          horizontal_neighbours++;
+        if (perimeter.contains({p.x, p.y - 1}))
+          vertical_neighbors++;
+        if (perimeter.contains({p.x, p.y + 1}))
+          vertical_neighbors++;
+
+        if (horizontal_neighbours == 1 && vertical_neighbors == 1)
+          corners++;
       }
 
-      int last_left_x = -1;
-      int last_right_x = -1;
-      std::unordered_map<char, std::vector<Pos>> inner_entries;
-
-      for (int y = bottom_y; y <= top_y; y++) {
-        int right_x = -1;
-        int left_x = input[0].size();
-        for (const Pos &p : area) {
-          if (p.y != y)
-            continue;
-          if (p.x < left_x)
-            left_x = p.x;
-          if (p.x > right_x)
-            right_x = p.x;
-        }
-
-        if (last_left_x != left_x)
-          corners += 2;
-        if (last_right_x != right_x)
-          corners += 2;
-
-        std::vector<int> plant_xs;
-        for (int x = left_x; x <= right_x; x++) {
-          Pos p = {x, y};
-          if (std::find(area.begin(), area.end(), p) == area.end()) {
-            plant_xs.push_back(x);
-          }
-        }
-
-        for (int x = left_x; x <= right_x; x++) {
-          Pos p = {x, y};
-          Pos p_left = {x - 1, y};
-          Pos p_right = {x + 1, y};
-          if (std::find(area.begin(), area.end(), p) == area.end() &&
-              (std::find(area.begin(), area.end(), p_left) != area.end() ||
-               std::find(area.begin(), area.end(), p_right) != area.end())) {
-
-            inner_entries[input[y][x]].push_back({x, y});
-          }
-        }
-
-        last_left_x = left_x;
-        last_right_x = right_x;
-      }
-
-      for (const auto &ie : inner_entries) {
-        std::vector<Pos> perimeter = ie.second;
-        if (perimeter.size() <= 4)
-          corners += 4;
-        else {
-          int added_corners = 2;
-          for (const Pos &pos : perimeter) {
-            Pos p_up = {pos.x, pos.y - 1};
-            Pos p_down = {pos.x, pos.y + 1};
-            if (std::find(perimeter.begin(), perimeter.end(), p_up) !=
-                    perimeter.end() &&
-                std::find(perimeter.begin(), perimeter.end(), p_down) !=
-                    perimeter.end())
-              continue;
-            added_corners++;
-            if (input[p_down.y][p_down.x] == plant)
-              added_corners--;
-          }
-          corners += added_corners;
-        }
-      }
-
-      res += area.size() * corners;
+      res += area.size() / 9 * corners;
     }
   }
   std::cout << "Day12 Part2: " << res << "\n";
