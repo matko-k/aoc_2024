@@ -1,15 +1,15 @@
 #include "day24.h"
 #include "commons.h"
-#include <set>
 #include <map>
+#include <set>
 
 static const std::string DAY = "day24";
 static const std::string EXAMPLE_PATH = "../inputs/" + DAY + "/example.txt";
 static const std::string INPUT_PATH = "../inputs/" + DAY + "/input.txt";
 
-static void
-parseInput(const std::string &file_name,
-           std::unordered_map<std::string, int> &init_state, std::vector<std::vector<std::string>>& operations) {
+static void parseInput(const std::string &file_name,
+                       std::unordered_map<std::string, int> &init_state,
+                       std::vector<std::vector<std::string>> &operations) {
   std::ifstream file(file_name);
   std::string line;
 
@@ -35,7 +35,7 @@ parseInput(const std::string &file_name,
   file.close();
 }
 
-int doOperation(const std::string& operation, int left, int right) {
+int doOperation(const std::string &operation, int left, int right) {
   if (operation == "AND")
     return left & right;
   if (operation == "OR")
@@ -56,18 +56,21 @@ void day24::runDay24Part1() {
   while (!ops_to_do.empty()) {
     i %= ops_to_do.size();
     std::vector<std::string> next_op = ops_to_do[i];
-    if (!wire_state.contains(next_op[0]) || !wire_state.contains(next_op[2]) || wire_state.contains(next_op[3])) {
+    if (!wire_state.contains(next_op[0]) || !wire_state.contains(next_op[2]) ||
+        wire_state.contains(next_op[3])) {
       i++;
       continue;
     }
-    int res = doOperation(next_op[1], wire_state[next_op[0]], wire_state[next_op[2]]);
+    int res =
+        doOperation(next_op[1], wire_state[next_op[0]], wire_state[next_op[2]]);
     wire_state[next_op[3]] = res;
-    ops_to_do.erase(std::remove(ops_to_do.begin(), ops_to_do.end(), next_op), ops_to_do.end());
+    ops_to_do.erase(std::remove(ops_to_do.begin(), ops_to_do.end(), next_op),
+                    ops_to_do.end());
     i++;
   }
 
   std::map<std::string, int> results_on_zs;
-  for (const auto& state: wire_state) {
+  for (const auto &state : wire_state) {
     if (state.first[0] != 'z')
       continue;
     results_on_zs.insert(state);
@@ -75,11 +78,12 @@ void day24::runDay24Part1() {
 
   std::string res_bits;
 
-  for (const auto& z : results_on_zs)
+  for (const auto &z : results_on_zs)
     res_bits += std::to_string(z.second);
 
   std::reverse(res_bits.begin(), res_bits.end());
-  long long res = std::stoll(res_bits, nullptr, 2);;
+  long long res = std::stoll(res_bits, nullptr, 2);
+  ;
 
   std::cout << "Day24 Part1: " << res << "\n";
 }
@@ -89,46 +93,78 @@ void day24::runDay24Part2() {
   std::vector<std::vector<std::string>> operations;
   parseInput(INPUT_PATH, wire_state, operations);
 
-  std::map<std::pair<std::set<std::string>, std::string>, std::string> sorted_ops;
+  std::map<std::pair<std::set<std::string>, std::string>, std::string>
+      sorted_ops;
 
-  for (const auto& op : operations) {
-    std::set<std::string> operands = {op[0] , op[2]};
+  for (const auto &op : operations) {
+    std::set<std::string> operands = {op[0], op[2]};
     auto key = std::make_pair(operands, op[1]);
     sorted_ops[key] = op[3];
   }
 
-  std::vector<int> invalids;
+  std::set<std::string> swaps;
   std::string last_cout = "rnv";
 
   for (int i = 1; i < 45; i++) {
-    std::string x_in = "x" + (i < 10 ? "0" + std::to_string(i) : std::to_string(i));
-    std::string y_in = "y" + (i < 10 ? "0" + std::to_string(i) : std::to_string(i));
+    std::string x_in =
+        "x" + (i < 10 ? "0" + std::to_string(i) : std::to_string(i));
+    std::string y_in =
+        "y" + (i < 10 ? "0" + std::to_string(i) : std::to_string(i));
+    std::string expected_z =
+        "z" + (i < 10 ? "0" + std::to_string(i) : std::to_string(i));
 
-    //check first xor
-    std::set<std::string> operands = {x_in, y_in};
-    std::string xor_1 = sorted_ops[{operands, "XOR"}];
-    std::string and_1 = sorted_ops[{operands, "AND"}];
+    std::map<std::string, std::pair<std::set<std::string>, std::string>>
+        operations_for_inspection;
+    std::string xor_1 = sorted_ops[{{x_in, y_in}, "XOR"}];
+    operations_for_inspection[xor_1] = {{x_in, y_in}, "XOR"};
+
+    std::string and_1 = sorted_ops[{{x_in, y_in}, "AND"}];
+    operations_for_inspection[and_1] = {{x_in, y_in}, "AND"};
+
     std::string z_out = sorted_ops[{{xor_1, last_cout}, "XOR"}];
+    operations_for_inspection[z_out] = {{xor_1, last_cout}, "XOR"};
+
     std::string and_2 = sorted_ops[{{xor_1, last_cout}, "AND"}];
+    operations_for_inspection[and_2] = {{xor_1, last_cout}, "AND"};
 
-    last_cout = sorted_ops[{{and_1, and_2}, "OR"}];
+    std::string cout = sorted_ops[{{and_1, and_2}, "OR"}];
+    operations_for_inspection[cout] = {{and_1, and_2}, "OR"};
 
-    std::string expected_z = "z" + (i < 10 ? "0" + std::to_string(i) : std::to_string(i));
-
-    if (expected_z != z_out) {
-      std::cout << "foul! " << i << "\n";
-      
-      std::cout << i << ": xor_1 " << xor_1 << "\n";
-      std::cout << i << ": and_1 " << and_1 << "\n";
-      std::cout << i << ": z_out " << z_out << "\n";
-      std::cout << i << ": and_2 " << and_2 << "\n";
-      std::cout << i << ": last_cout " << last_cout << "\n";
-      break;
+    if (!z_out.empty() && z_out != expected_z) {
+      auto op1 = operations_for_inspection[z_out];
+      auto op2 = operations_for_inspection[expected_z];
+      sorted_ops[op1] = expected_z;
+      sorted_ops[op2] = z_out;
+      swaps.insert(expected_z);
+      swaps.insert(z_out);
+      i--;
+      continue;
     }
 
+    if (operations_for_inspection.contains("")) {
+      std::vector<std::string> to_swap;
+      for (const auto &op : operations_for_inspection) {
+        if (op.first == "")
+          continue;
+        to_swap.push_back(op.first);
+      }
+      auto op1 = operations_for_inspection[to_swap[0]];
+      auto op2 = operations_for_inspection[to_swap[1]];
+      sorted_ops[op1] = to_swap[1];
+      sorted_ops[op2] = to_swap[0];
+      swaps.insert(to_swap[0]);
+      swaps.insert(to_swap[1]);
+      i--;
+      continue;
+    }
+
+    last_cout = cout;
   }
 
-  int res = 0;
+  std::string res;
+  for (const std::string &s : swaps)
+    res += s + ',';
+  res.pop_back();
 
   std::cout << "Day24 Part2: " << res << "\n";
 }
