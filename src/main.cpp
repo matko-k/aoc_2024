@@ -24,6 +24,7 @@
 #include <day22/day22.h>
 #include <day23/day23.h>
 #include <day24/day24.h>
+#include <day25/day25.h>
 
 void runAll (){
 //  measureExecutionTime(day01::runDay1Part1);
@@ -72,9 +73,11 @@ void runAll (){
 //  measureExecutionTime(day22::runDay22Part2);
 //  measureExecutionTime(day23::runDay23Part1);
 //  measureExecutionTime(day23::runDay23Part2);
+//  measureExecutionTime(day24::runDay24Part1);
+//  measureExecutionTime(day24::runDay24Part2);
 
-  measureExecutionTime(day24::runDay24Part1);
-  measureExecutionTime(day24::runDay24Part2);
+  measureExecutionTime(day25::runDay25Part1);
+  measureExecutionTime(day25::runDay25Part2);
 }
 
 int main() {
